@@ -147,9 +147,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center text-xs text-green-700 font-bold mb-2 hidden" id="autoSaveStatus">
-                <i class="fas fa-check-circle mr-1"></i> Đã tự động lưu nháp
-            </div>
+
 
             <!-- MEMBER FORM -->
             <div id="form-member" class="block">
@@ -215,9 +213,13 @@
                 <div class="flex items-center mb-4">
                     <div class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mr-3 shadow-sm">3</div>
                     <h3 class="text-xl font-medium text-gray-800">Nhận xét thêm</h3>
+                    
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
                     <textarea id="additionalComments" oninput="saveDraft()" rows="4" class="w-full p-4 outline-none resize-y text-sm text-gray-700 placeholder-gray-400 border-none" placeholder="Ghi chú thêm về thái độ, đóng góp hoặc đề xuất cho thành viên này (không bắt buộc)..."></textarea>
+                </div>
+                <div class="flex items-center text-xs text-green-700 font-bold mb-2 hidden" id="autoSaveStatus">
+                    <i class="fas fa-check-circle mr-1"></i> Đã tự động lưu nháp
                 </div>
             </div>
             
