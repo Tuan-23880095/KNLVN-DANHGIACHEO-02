@@ -147,10 +147,6 @@
                 </div>
             </div>
 
-            <div class="flex items-center text-xs text-green-700 font-bold mb-2 hidden" id="autoSaveStatus">
-                <i class="fas fa-check-circle mr-1"></i> Đã tự động lưu nháp
-            </div>
-
             <!-- MEMBER FORM -->
             <div id="form-member" class="block">
                 <div class="flex justify-between items-center mb-4">
@@ -236,7 +232,7 @@
 
     <!-- Script Logic -->
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEP_kko3wt2-XAhmTEQXHoRbUYNRDUOo8CiU9O7_lVTpwxm4mSj047da2O_N2aYs8Bog/exec'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKeTMSqe5fDYbjPS5JkhAaiHkwWYGDoOkCmvQXxp5LkInboOgZt4S7lXh_40D7VEl8wg/exec'; 
 
         // Database of all groups
         const groupsDatabase = {
@@ -710,9 +706,6 @@
             const data = {};
             inputs.forEach(input => { if (input.id) data[input.id] = input.value; });
             localStorage.setItem('GeoData_v5', JSON.stringify(data));
-            const status = document.getElementById('autoSaveStatus');
-            status.style.display = 'flex';
-            setTimeout(() => { status.style.display = 'none'; }, 2000);
         }
 
         function loadDraft() {
