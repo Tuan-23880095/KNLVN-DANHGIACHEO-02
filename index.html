@@ -161,13 +161,13 @@
                         <option value="3">Tuần 3</option>
                         <option value="4">Tuần 4</option>
                         <option value="5">Tuần 5</option>
-                        <option value="5">Tuần 6</option>
-                        <option value="5">Tuần 7</option>
-                        <option value="5">Tuần 8</option>
-                        <option value="5">Tuần 9</option>
-                        <option value="5">Tuần 10</option>
-                        <option value="5">Tuần 11</option>
-                        <option value="5">Tuần 12</option>
+                        <option value="6">Tuần 6</option>
+                        <option value="7">Tuần 7</option>
+                        <option value="8">Tuần 8</option>
+                        <option value="9">Tuần 9</option>
+                        <option value="10">Tuần 10</option>
+                        <option value="11">Tuần 11</option>
+                        <option value="12">Tuần 12</option>
                     </select>
                 </div>
                 <div class="bg-yellow-50 p-2 rounded border border-yellow-100 text-sm mb-4"><i class="fas fa-info-circle mr-1"></i> <strong>Lưu ý:</strong> Phần này chỉ dành cho việc <strong>TỰ ĐÁNH GIÁ</strong> bản thân. Điểm từ 0 - 2.5.</div>
@@ -209,6 +209,7 @@
                     </table>
                 </div>
             </div>
+            
             <!-- NHẬN XÉT THÊM (New Section) -->
             <div class="mt-8 border-t border-gray-100 pt-8">
                 <div class="flex items-center mb-4">
@@ -219,6 +220,7 @@
                     <textarea id="additionalComments" oninput="saveDraft()" rows="4" class="w-full p-4 outline-none resize-y text-sm text-gray-700 placeholder-gray-400 border-none" placeholder="Ghi chú thêm về thái độ, đóng góp hoặc đề xuất cho thành viên này (không bắt buộc)..."></textarea>
                 </div>
             </div>
+            
             <!-- Action Buttons -->
             <div class="flex flex-col md:flex-row gap-4 justify-between items-center pt-6 mt-4 border-t border-gray-100">
                 <button type="button" onclick="clearData()" class="text-gray-400 hover:text-red-500 text-sm font-medium transition"><i class="fas fa-trash-alt mr-2"></i> Xóa làm lại</button>
@@ -234,7 +236,7 @@
 
     <!-- Script Logic -->
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzg6-KGrM7cJLbxM4VhaKuUDBlcALrzP1ww61JpMwExNSln9uw_JMfuPn3rwE6D1MfOIQ/exec'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKeTMSqe5fDYbjPS5JkhAaiHkwWYGDoOkCmvQXxp5LkInboOgZt4S7lXh_40D7VEl8wg/exec'; 
 
         // Database of all groups
         const groupsDatabase = {
@@ -400,7 +402,7 @@
                     { name: "Võ Phúc Lộc", mssv: "25280086", role: "" },
                     { name: "Nguyễn Tuyết Minh", mssv: "25280087", role: "" },
                     { name: "Trần Khôi Nguyên", mssv: "25280113", role: "" },
-                    { name: "Nguyễn Lê Anh Tài", mssv: "25280073", role: "" },
+                    { name: "Nguyễn Lê Anh Tài", mssv: "25280073", role: "" },
                     { name: "Trương Đình Trí", mssv: "25280048", role: "" },
                     { name: "Phan Nguyễn Tường Vy", mssv: "25280054", role: "" }
                 ]
@@ -600,9 +602,6 @@
             renderTableStructure('peer', leaderCriteria);
             renderTableStructure('leader', leaderCriteria);
             renderTableStructure('lecturer', lecturerCriteria);
-            
-            // Try to restore data if available for this group
-            // Note: Mixing groups might show wrong data if keys conflict, but clearData handles that.
         }
 
         function toggleRubric() { document.getElementById('rubricModal').classList.toggle('hidden'); }
@@ -707,7 +706,7 @@
         }
 
         function saveDraft() {
-            const inputs = document.querySelectorAll('input, select');
+            const inputs = document.querySelectorAll('input, select, textarea');
             const data = {};
             inputs.forEach(input => { if (input.id) data[input.id] = input.value; });
             localStorage.setItem('GeoData_v5', JSON.stringify(data));
@@ -787,6 +786,9 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
+        // ==========================================
+        // HÀM ĐÃ ĐƯỢC CẬP NHẬT ĐỂ GỬI ĐỦ TIÊU ĐỀ CỘT
+        // ==========================================
         function submitToGoogleSheet() {
             if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("DÁN_LINK")) { alert("Chưa cấu hình Google Script URL!"); return; }
             const groupId = document.getElementById('groupSelect').value;
@@ -794,13 +796,21 @@
             const evaluator = document.getElementById('evaluatorName').value;
             if(!groupName || !evaluator) { alert("Vui lòng Chọn Nhóm và Người đánh giá!"); return; }
 
+            // Thêm trường "headers" vào payload để gửi động lên Apps Script
             let payload = {
-                role: currentRole, groupName: groupName, evaluator: evaluator,
-                week: document.getElementById('weekSelect').value, scores: []
+                action: "save_form_knlvn", // Truyền Action gọi đúng vào case trong sheet
+                role: currentRole,
+                groupName: groupName,
+                evaluator: evaluator,
+                week: document.getElementById('weekSelect').value,
+                headers: [],
+                scores: []
             };
 
+            // Sinh động mảng tiêu đề cột (headers) và mảng điểm (scores) tương ứng
             if (currentRole === 'member') {
                 memberCriteriaData.forEach((crit, idx) => {
+                    payload.headers.push(crit.title); // Đẩy tên tiêu chí vào tiêu đề cột
                     payload.scores.push(document.getElementById(`mem_c${idx+1}_self`).value || 0);
                 });
             } else {
@@ -812,10 +822,18 @@
                 payload.week = "N/A";
                 criteriaList.forEach((crit, idx) => {
                     for(let i=0; i < currentMembers.length; i++) {
+                        let memberName = currentMembers[i].name;
+                        // Gom nối "Tên Tiêu Chí + Tên Thành Viên" làm tiêu đề cột
+                        payload.headers.push(`${crit} - ${memberName}`);
                         payload.scores.push(document.getElementById(`${prefix}_c${idx+1}_m${i}`)?.value || 0);
                     }
                 });
             }
+
+            // Gửi trường "Nhận xét thêm" vào phía sau cùng
+            let commentText = document.getElementById('additionalComments').value || "";
+            payload.headers.push("Nhận xét thêm");
+            payload.scores.push(commentText);
 
             document.getElementById('loadingOverlay').style.display = 'flex';
             fetch(GOOGLE_SCRIPT_URL, {
