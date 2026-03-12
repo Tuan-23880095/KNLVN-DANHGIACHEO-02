@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đánh Giá Chéo 10% - môn BAA00008 - Kỹ năng làm việc nhóm và học tập</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; background-color: #f3f4f6; }
+        
+        /* Màu sắc chủ đạo HCMUS & Địa chất */
+        :root {
+            --hcmus-blue: #004c8c;
+            --geo-orange: #d97706; 
+        }
+
+        .header-gradient { background: linear-gradient(to right, #ffffff, #e6f0fa); }
+        .text-hcmus { color: var(--hcmus-blue); }
+        .bg-hcmus { background-color: var(--hcmus-blue); }
+        .active-tab { border-bottom: 3px solid var(--hcmus-blue); color: var(--hcmus-blue); background-color: white; font-weight: bold; }
+        .inactive-tab { color: #6b7280; background-color: #f9fafb; }
+        .inactive-tab:hover { background-color: #e5e7eb; color: var(--hcmus-blue); }
+        
+        /* Sticky Column for Tables */
+        .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; border-right: 2px solid #e5e7eb; }
+        input[type="number"] { min-width: 60px; }
+        
+        /* Modal & Loading */
+        #loadingOverlay, #rubricModal { background: rgba(0, 0, 0, 0.5); z-index: 50; }
+        
+        /* Rubric Table Styles */
+        .rubric-table {
+            width: 100%; border-collapse: collapse; background: #ffffff;
+            border-radius: 8px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        .rubric-table th { background: #0056b3; color: #fff; padding: 12px; text-align: left; font-size: 16px; }
+        .rubric-table td { padding: 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; font-size: 14px; }
+        .rubric-table tr:nth-child(even) td { background: #f6f8fc; }
+        .rubric-table .level { font-weight: bold; color: #003f7f; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative">
+
+    <!-- Loading UI -->
+    <div id="loadingOverlay" class="fixed inset-0 hidden flex-col items-center justify-center">
+        <div class="bg-white p-6 rounded shadow-lg flex flex-col items-center">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-800 mb-4"></div>
+            <p class="text-blue-900 font-bold">Đang xử lý dữ liệu...</p>
+        </div>
+    </div>
+
+    <!-- Rubric Modal -->
+    <div id="rubricModal" class="fixed inset-0 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-blue-50">
+                <h3 class="text-xl font-bold text-hcmus"><i class="fas fa-book-open mr-2"></i>Bảng Tiêu Chí Đánh Giá (Rubric)</h3>
+                <button onclick="toggleRubric()" class="text-gray-500 hover:text-red-600 transition"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 text-sm text-gray-700">
+                <h2 class="text-center font-bold text-xl mb-6 text-gray-800 uppercase">RUBRIC ĐÁNH GIÁ KỸ NĂNG LÀM VIỆC NHÓM<br> </h2>
+                <table class="rubric-table">
+                  <tr><th>Tiêu chí</th><th>Mức 1<br>[0 – 1.0)</th><th>Mức 2<br>[1.0 – 2.0)</th><th>Mức 3<br>[2.0 – 2.5]</th></tr>
+                  <tr><td class="level">1. Tham dự & phối hợp</td><td>• Vắng họp > 20%<br>• Không quan tâm công việc<br>• Không tham gia Facebook/Zalo<br>• Tương tác/tuần: 0<br>• Ý kiến đóng góp: 0–1</td><td>• Vắng họp 10–20%<br>• Tham gia Facebook/Zalo 1–2 lần/tuần<br>• Ý kiến đóng góp: 1–2/tuần</td><td>• Vắng họp < 10%<br>• Tương tác Facebook/Zalo ≥ 3/tuần<br>• Đóng góp ≥ 3 ý kiến/tuần</td></tr>
+                  <tr><td class="level">2. Quản lý công việc</td><td>• Hoàn thành đúng hạn < 70%<br>• Trễ hạn ≥ 2 nhiệm vụ/tuần</td><td>• Hoàn thành đúng hạn 70–90%<br>• Trễ hạn 0–1 nhiệm vụ/tuần</td><td>• Hoàn thành đúng hạn ≥ 90%<br>• Hoàn thành sớm ≥ 30% nhiệm vụ<br>• Hỗ trợ thành viên ≥ 2 lần/tuần</td></tr>
+                  <tr><td class="level">3. Giao tiếp</td><td>• Phản hồi email/tin nhắn < 50%<br>• Thời gian phản hồi > 24h</td><td>• Phản hồi 50–80%<br>• Thời gian phản hồi 8–24h</td><td>• Phản hồi ≥ 80%<br>• Phản hồi < 8h<br>• Lỗi diễn đạt: 0–1 lỗi/báo cáo</td></tr>
+                  <tr><td class="level">4. Giải quyết vấn đề</td><td>• Không phân tích được nguyên nhân<br>• Số giải pháp khả thi: 0</td><td>• Đề xuất 1–2 giải pháp/tuần<br>• Tỷ lệ chấp nhận ≤ 40%</td><td>• Đề xuất ≥ 2–3 giải pháp/tuần<br>• Tỷ lệ chấp nhận ≥ 60%<br>• Nhận diện đúng vấn đề ≥ 2 lần/tuần</td></tr>
+                </table>
+            </div>
+            <div class="p-4 border-t bg-gray-50 text-right"><button onclick="toggleRubric()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">Đóng</button></div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="header-gradient shadow-md border-b-4 border-hcmus">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex-shrink-0"><img src="https://hcmus.edu.vn/wp-content/uploads/2023/04/Logo-chinh-e1681638380305.png" alt="Logo HCMUS" class="h-16 md:h-20 object-contain"></div>
+                <div class="text-center flex-grow">
+                    <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">KHOA TOÁN TIN HỌC</h2>
+                    <h1 class="text-xl md:text-2xl font-bold text-hcmus mt-1">HỌC PHẦN BAA00008</h1>
+                    <p class="text-base font-medium text-gray-700">Kỹ năng làm việc nhóm và học tập</p>
+                </div>
+                <div class="flex-shrink-0"><img src="https://tuyensinh.hcmus.edu.vn/wp-content/uploads/2024/12/Khoa-Toan-Tin-hoc-568x400.png" alt="Logo Toan-tin" class="h-16 md:h-20 object-contain"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Creator Info Bar -->
+    <div class="bg-white border-b shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-2 flex flex-col md:flex-row justify-between items-center text-xs md:text-sm text-gray-600">
+            <div><span class="font-bold text-hcmus">GV Phụ trách: ThS. Đinh Thị Kim Liên </span></div>
+            <div class="flex gap-4"><span><i class="fas fa-envelope mr-1"></i>dtklien@hcmus.edu.vn</span><span><i class="fas fa-phone-alt mr-1"></i>xxxxxxx</span></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow max-w-7xl mx-auto w-full pt-6 px-4 pb-12">
+        
+        <!-- Member List Reference -->
+        <div class="mb-6 bg-blue-50 border border-blue-200 rounded p-4">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h3 class="font-bold text-hcmus text-sm uppercase"><i class="fas fa-users mr-2"></i>Danh sách thành viên</h3>
+                    <p id="groupnameDisplay" class="text-xs text-gray-600 font-medium mt-1 italic">ID nhóm: ...</p>
+                </div>
+                <span id="memberCountBadge" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">0 Thành viên</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm" id="memberListInfo">
+                <!-- Will be populated by JS -->
+                <p class="text-gray-500 text-sm italic">Vui lòng chọn nhóm bên dưới để xem danh sách.</p>
+            </div>
+        </div>
+
+        <div class="flex justify-end mb-4">
+            <button onclick="toggleRubric()" class="bg-white border border-hcmus text-hcmus px-4 py-2 rounded shadow-sm hover:bg-blue-50 text-sm font-bold">
+                <i class="fas fa-list-alt mr-2"></i> Xem Bảng Điểm (Rubric)
+            </button>
+        </div>
+
+        <!-- Role Tabs -->
+        <div class="flex rounded-t-lg overflow-hidden border-b border-gray-200 text-sm md:text-base font-medium">
+            <button onclick="switchTab('member')" id="tab-member" class="flex-1 py-3 text-center transition active-tab"><i class="fas fa-user-circle mr-2"></i>Tự Đánh Giá</button>
+            <button onclick="switchTab('peer')" id="tab-peer" class="flex-1 py-3 text-center transition inactive-tab"><i class="fas fa-exchange-alt mr-2"></i>Đánh Giá Chéo</button>
+            <button onclick="switchTab('leader')" id="tab-leader" class="flex-1 py-3 text-center transition inactive-tab"><i class="fas fa-users-cog mr-2"></i>Nhóm Trưởng</button>
+            <button onclick="switchTab('lecturer')" id="tab-lecturer" class="flex-1 py-3 text-center transition inactive-tab"><i class="fas fa-chalkboard-teacher mr-2"></i>Giảng Viên</button>
+        </div>
+
+        <!-- Form Content -->
+        <form id="evaluationForm" class="bg-white shadow-md rounded-b-lg p-6 space-y-6" onsubmit="return false;">
+            
+            <!-- Common Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-100">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Chọn Nhóm <span class="text-red-500">*</span></label>
+                    <select id="groupSelect" onchange="changeGroup()" class="w-full py-2 px-3 bg-white border border-gray-300 rounded focus:border-blue-500 outline-none shadow-sm text-hcmus font-medium">
+                        <option value="">-- Vui lòng chọn nhóm --</option>
+                        <!-- Options filled by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Người đánh giá (Chọn tên bạn) <span class="text-red-500">*</span></label>
+                    <select id="evaluatorName" onchange="saveDraft()" class="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded focus:border-blue-500 outline-none">
+                        <option value="">-- Chọn nhóm trước --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center text-xs text-green-700 font-bold mb-2 hidden" id="autoSaveStatus">
+                <i class="fas fa-check-circle mr-1"></i> Đã tự động lưu nháp
+            </div>
+
+            <!-- MEMBER FORM -->
+            <div id="form-member" class="block">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-hcmus">Tự Đánh Giá Cá Nhân (Theo Tuần)</h3>
+                    <select id="weekSelect" onchange="saveDraft()" class="py-1 px-3 border border-gray-300 rounded text-sm">
+                        <option value="1">Tuần 1</option>
+                        <option value="2">Tuần 2</option>
+                        <option value="3">Tuần 3</option>
+                        <option value="4">Tuần 4</option>
+                        <option value="5">Tuần 5</option>
+                        <option value="5">Tuần 6</option>
+                        <option value="5">Tuần 7</option>
+                        <option value="5">Tuần 8</option>
+                        <option value="5">Tuần 9</option>
+                        <option value="5">Tuần 10</option>
+                        <option value="5">Tuần 11</option>
+                        <option value="5">Tuần 12</option>
+                    </select>
+                </div>
+                <div class="bg-yellow-50 p-2 rounded border border-yellow-100 text-sm mb-4"><i class="fas fa-info-circle mr-1"></i> <strong>Lưu ý:</strong> Phần này chỉ dành cho việc <strong>TỰ ĐÁNH GIÁ</strong> bản thân. Điểm từ 0 - 2.5.</div>
+                <div class="space-y-4" id="memberCriteriaContainer"></div>
+            </div>
+
+            <!-- PEER FORM -->
+            <div id="form-peer" class="hidden">
+                <div class="mb-4"><h3 class="text-lg font-bold text-hcmus">Đánh Giá Chéo Các Thành Viên</h3><p class="text-sm text-gray-500 mt-1"><i class="fas fa-info-circle mr-1"></i> Đánh giá các thành viên khác trong nhóm.</p></div>
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100 text-gray-700 font-bold text-xs"><tr id="peerHeaderRow"><th class="p-3 text-left min-w-[200px] sticky-col">Tiêu chí</th></tr></thead>
+                        <tbody id="peerTableBody" class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-blue-50 font-bold text-hcmus"><tr id="peerFooterRow"><td class="p-3 text-right sticky-col bg-blue-50 shadow-sm border-r">TỔNG CỘNG:</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LEADER FORM -->
+            <div id="form-leader" class="hidden">
+                <div class="mb-4"><h3 class="text-lg font-bold text-hcmus">Nhóm Trưởng Tổng Hợp (12 Tuần)</h3></div>
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100 text-gray-700 font-bold text-xs"><tr id="leaderHeaderRow"><th class="p-3 text-left min-w-[200px] sticky-col">Tiêu chí</th></tr></thead>
+                        <tbody id="leaderTableBody" class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-blue-50 font-bold text-hcmus"><tr id="leaderFooterRow"><td class="p-3 text-right sticky-col bg-blue-50 shadow-sm border-r">TỔNG CỘNG:</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LECTURER FORM -->
+            <div id="form-lecturer" class="hidden">
+                <div class="mb-4"><h3 class="text-lg font-bold text-hcmus">Giảng Viên Đánh Giá</h3></div>
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100 text-gray-700 font-bold text-xs"><tr id="lecturerHeaderRow"><th class="p-3 text-left min-w-[200px] sticky-col">Tiêu chí</th></tr></thead>
+                        <tbody id="lecturerTableBody" class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-blue-50 font-bold text-hcmus"><tr id="lecturerFooterRow"><td class="p-3 text-right sticky-col bg-blue-50 shadow-sm border-r">TỔNG CỘNG:</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+            <!-- NHẬN XÉT THÊM (New Section) -->
+            <div class="mt-8 border-t border-gray-100 pt-8">
+                <div class="flex items-center mb-4">
+                    <div class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mr-3 shadow-sm">3</div>
+                    <h3 class="text-xl font-medium text-gray-800">Nhận xét thêm</h3>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                    <textarea id="additionalComments" oninput="saveDraft()" rows="4" class="w-full p-4 outline-none resize-y text-sm text-gray-700 placeholder-gray-400 border-none" placeholder="Ghi chú thêm về thái độ, đóng góp hoặc đề xuất cho thành viên này (không bắt buộc)..."></textarea>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-center pt-6 mt-4 border-t border-gray-100">
+                <button type="button" onclick="clearData()" class="text-gray-400 hover:text-red-500 text-sm font-medium transition"><i class="fas fa-trash-alt mr-2"></i> Xóa làm lại</button>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <button type="button" onclick="exportToCSV()" class="flex-1 bg-green-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-green-700 transition"><i class="fas fa-file-csv mr-2"></i> Tải CSV</button>
+                    <button type="button" onclick="submitToGoogleSheet()" class="flex-1 bg-hcmus text-white font-bold py-2 px-6 rounded shadow hover:bg-blue-800 transition"><i class="fas fa-paper-plane mr-2"></i> Gửi Online</button>
+                </div>
+            </div>
+        </form>
+        
+        <footer class="text-center text-gray-400 text-xs mt-8 pb-4">&copy; Người phát triển web ThS.Đinh Quốc Tuấn - 2026 Khoa Địa Chất - Trường Đại học Khoa học tự nhiên, ĐHQG-HCM</footer>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKeTMSqe5fDYbjPS5JkhAaiHkwWYGDoOkCmvQXxp5LkInboOgZt4S7lXh_40D7VEl8wg/exec'; 
+
+        // Database of all groups
+        const groupsDatabase = {
+            "1": {
+                groupname: "T6-01",
+                members: [
+                    { name: "Lê Đình Quốc Dũng", mssv: "25280014", role: "" },
+                    { name: "Nguyễn Kim", mssv: "25280064", role: "" },
+                    { name: "Nguyễn Đoàn Quỳnh Như", mssv: "25280032", role: "" },
+                    { name: "Trần Huỳnh Như", mssv: "25280033", role: "" },
+                    { name: "Phùng Hoàng Hữu Phú", mssv: "25280035", role: "" },
+                    { name: "Nguyễn Ngọc Bảo Phương", mssv: "25280038", role: "" },
+                    { name: "Trương Minh Quân", mssv: "25280040", role: "" },
+                    { name: "Võ Triết Sơn", mssv: "25280071", role: "" },
+                    { name: "Trần Văn Thịnh", mssv: "25280044", role: "" },
+                    { name: "Huỳnh Huyền Trân", mssv: "25280007", role: "" }
+                ]
+            },
+            "2": {
+                groupname: "T6-02",
+                members: [
+                    { name: "Vũ Long Đức", mssv: "25280099", role: "" },
+                    { name: "Phạm Ngọc Hân", mssv: "25280016", role: "" },
+                    { name: "Nguyễn Hoàng Minh Hiếu", mssv: "25280103", role: "" },
+                    { name: "Huỳnh Ngọc Hồng Phúc", mssv: "21110149", role: "" },
+                    { name: "Võ Tuấn Kiệt", mssv: "25280022", role: "" },
+                    { name: "Lê Hoàng Chi Mai", mssv: "25280025", role: "" },
+                    { name: "Tôn Thất Thiện Minh", mssv: "25280027", role: "" },
+                    { name: "Lâm Khả Ngân", mssv: "25280028", role: "" },
+                    { name: "Doãn Trọng Quý", mssv: "25280122", role: "" },
+                    { name: "Trương Hồ Minh Thuấn", mssv: "25280003", role: "" },
+                    { name: "Trần Nguyễn Tuệ Vương", mssv: "25280126", role: "" }
+                ]
+            },
+            "3": {
+                groupname: "T6-03",
+                members: [
+                    { name: "Nguyễn Thanh Minh Anh", mssv: "25280093", role: "" },
+                    { name: "Lý Tư Dung", mssv: "25280013", role: "" },
+                    { name: "Nguyễn Thanh Phước", mssv: "22280068", role: "" },
+                    { name: "Lê Long Nhật", mssv: "25110086", role: "" },
+                    { name: "Vũ Phan Quỳnh Nhi", mssv: "25110090", role: "" },
+                    { name: "Nguyễn Nhã Phong", mssv: "25110094", role: "" },
+                    { name: "Phạm Thanh Phong", mssv: "25110096", role: "" },
+                    { name: "Trần Lê Minh Phúc", mssv: "25110100", role: "" },
+                    { name: "Huỳnh Phan Quỳnh", mssv: "25110110", role: "" },
+                    { name: "Ngô Đào Hương Trang", mssv: "25110133", role: "" }
+                ]
+            },
+            "4": {
+                groupname: "T6-04",
+                members: [
+                    { name: "Phạm Khánh An", mssv: "25280082", role: "" },
+                    { name: "Đoàn Nguyễn Gia Bảo", mssv: "25280010", role: "" },
+                    { name: "Vũ Khánh Duy", mssv: "25280004", role: "" },
+                    { name: "Hà Việt Hoàng", mssv: "25280018", role: "" },
+                    { name: "Vũ Hoàng Khiêm", mssv: "25280110", role: "" },
+                    { name: "Trần Đăng Khoa", mssv: "25280021", role: "" },
+                    { name: "Nguyễn Gia Phú", mssv: "25280120", role: "" },
+                    { name: "Trần Thanh Sơn", mssv: "25280042", role: "" },
+                    { name: "Nguyễn Phú Thịnh", mssv: "25280006", role: "" },
+                    { name: "Nguyễn Thế Vinh", mssv: "25280050", role: "" }
+                ]
+            },
+            "5": {
+                groupname: "T6-05",
+                members: [
+                    { name: "Nguyễn Dương Ngọc Phương", mssv: "25110104", role: "" },
+                    { name: "Trần Tú Quyên", mssv: "25110109", role: "" },
+                    { name: "Đồng Minh Tấn", mssv: "25110113", role: "" },
+                    { name: "Vòng Đại Thắng", mssv: "25110114", role: "" },
+                    { name: "Lê Huy Thông", mssv: "25110124", role: "" },
+                    { name: "Dương Tấn Thuận", mssv: "25110127", role: "" },
+                    { name: "Hồ Hữu Trí", mssv: "25110134", role: "" },
+                    { name: "Nguyễn Minh Tú", mssv: "25110139", role: "" },
+                    { name: "Đàm Văn Tuấn", mssv: "25110141", role: "" },
+                    { name: "Đào Anh Tuấn", mssv: "25110142", role: "" }
+                ]
+            },
+            "6": {
+                groupname: "T6-06",
+                members: [
+                    { name: "Huỳnh Ngọc Trâm Anh", mssv: "25280008", role: "" },
+                    { name: "Trần Nguyễn Yến Anh", mssv: "25280083", role: "" },
+                    { name: "Phan Trần Gia Hân", mssv: "25280058", role: "" },
+                    { name: "Lê Thanh Hiếu", mssv: "25280102", role: "" },
+                    { name: "Đinh Dương Huy", mssv: "25280106", role: "" },
+                    { name: "Trần Xuân Khánh Ngọc", mssv: "25280005", role: "" },
+                    { name: "Lê Văn Nhân", mssv: "25280115", role: "" },
+                    { name: "Võ Minh Thơ", mssv: "25280045", role: "" },
+                    { name: "Đặng Thị Kiều Tiên", mssv: "25280090", role: "" },
+                    { name: "Nguyễn Thị Yến Vy", mssv: "25280080", role: "" },
+                    { name: "Phan Ngọc Khánh Vy", mssv: "25280081", role: "" }
+                ]
+            },
+            "7": {
+                groupname: "T6-07",
+                members: [
+                    { name: "Lương Huỳnh Kỳ Anh", mssv: "25280092", role: "" },
+                    { name: "Nguyễn Thùy Duyên", mssv: "25280015", role: "" },
+                    { name: "Nguyễn Trọng Phước Hưng", mssv: "25280104", role: "" },
+                    { name: "Đặng Đinh Bảo Huy", mssv: "25280105", role: "" },
+                    { name: "Nguyễn Quang Huy Khánh", mssv: "25280019", role: "" },
+                    { name: "Huỳnh Thị Khánh Ngân", mssv: "25280068", role: "" },
+                    { name: "Tô Nguyễn Thảo Ngọc", mssv: "25280029", role: "" },
+                    { name: "Nguyễn Trường Phúc", mssv: "25280036", role: "" },
+                    { name: "Hồ Bảo Tiên", mssv: "25280124", role: "" },
+                    { name: "Nguyễn Đình Xuân Vy", mssv: "25280127", role: "" }
+                ]
+            },
+            "8": {
+                groupname: "T6-08",
+                members: [
+                    { name: "Phạm Thế Anh", mssv: "25280094", role: "" },
+                    { name: "Nguyễn Thị Như Bình", mssv: "25280096", role: "" },
+                    { name: "Phan Văn Đạt", mssv: "25280012", role: "" },
+                    { name: "Lê Nguyễn Minh Hiếu", mssv: "25280101", role: "" },
+                    { name: "Trần Đức Hiếu", mssv: "25280017", role: "" },
+                    { name: "Trần Trọng Khiêm", mssv: "25280020", role: "" },
+                    { name: "Nguyễn Hồ Minh Khôi", mssv: "25280111", role: "" },
+                    { name: "Nguyễn Minh Khôi", mssv: "25280112", role: "" },
+                    { name: "Lê Khánh Nhật Minh", mssv: "25280026", role: "" },
+                    { name: "Dương Đức Toàn", mssv: "25280075", role: "" }
+                ]
+            },
+            "9": {
+                groupname: "T6-09",
+                members: [
+                    { name: "Trần Thanh Bình", mssv: "25110188", role: "" },
+                    { name: "Vũ Đỗ Tiến Đạt", mssv: "25110194", role: "" },
+                    { name: "Huỳnh Thị Mỹ Hưng", mssv: "25280001", role: "" },
+                    { name: "Nguyễn Hoàng Gia Huy", mssv: "25110207", role: "" },
+                    { name: "Đoàn Công Lộc", mssv: "25110215", role: "" },
+                    { name: "Hoàng Phước Nguyên", mssv: "25110221", role: "" },
+                    { name: "Phạm Tiến Phát", mssv: "25110227", role: "" },
+                    { name: "Nguyễn Hoàng Phúc", mssv: "25110228", role: "" },
+                    { name: "Phan Đặng Thái Sơn", mssv: "25280041", role: "" },
+                    { name: "Lâm Minh Thư", mssv: "25280002", role: "" }
+                ]
+            },
+            "10": {
+                groupname: "T7-01",
+                members: [
+                    { name: "Hoàng Nhật Anh", mssv: "25110010", role: "" },
+                    { name: "Nguyễn Ngọc Phương Anh", mssv: "25110011", role: "" },
+                    { name: "Lê Quang Đạt", mssv: "25110025", role: "" },
+                    { name: "Trịnh Huy Hoàng", mssv: "25110045", role: "" },
+                    { name: "Đinh Xuân Huy", mssv: "25110049", role: "" },
+                    { name: "Huỳnh Vũ Gia Huy", mssv: "25110050", role: "" },
+                    { name: "Đào Nguyễn Quốc Khang", mssv: "25110055", role: "" },
+                    { name: "Đỗ Đăng Khoa", mssv: "25110063", role: "" },
+                    { name: "Hoàng Hải Long", mssv: "25110070", role: "" },
+                    { name: "Vũ Hoàng Long", mssv: "25110072", role: "" }
+                ]
+            },            
+            "11": {
+                groupname: "T7-02",
+                members: [
+                    { name: "Đinh Thanh Huy", mssv: "25280107", role: "" },
+                    { name: "Võ Trần Đức Huy", mssv: "25280060", role: "" },
+                    { name: "Phạm Trung Kiên", mssv: "25280063", role: "" },
+                    { name: "Nguyễn Anh Kiệt", mssv: "25280085", role: "" },
+                    { name: "Võ Phúc Lộc", mssv: "25280086", role: "" },
+                    { name: "Nguyễn Tuyết Minh", mssv: "25280087", role: "" },
+                    { name: "Trần Khôi Nguyên", mssv: "25280113", role: "" },
+                    { name: "Nguyễn Lê Anh Tài", mssv: "25280073", role: "" },
+                    { name: "Trương Đình Trí", mssv: "25280048", role: "" },
+                    { name: "Phan Nguyễn Tường Vy", mssv: "25280054", role: "" }
+                ]
+            },
+            "12": {
+                groupname: "T7-03",
+                members: [
+                    { name: "Ngô Gia Bảo", mssv: "25280056", role: "" },
+                    { name: "Nguyễn Hữu Hoà", mssv: "25110200", role: "" },
+                    { name: "Vũ Hoàng Nam", mssv: "25110078", role: "" },
+                    { name: "Nguyễn Lê Phi Ngư", mssv: "25110083", role: "" },
+                    { name: "Nguyễn Thanh Nhiệt", mssv: "25110091", role: "" },
+                    { name: "Trần Lê Diễm Quỳnh", mssv: "25110233", role: "" },
+                    { name: "Nguyễn Chí Thành", mssv: "25110115", role: "" },
+                    { name: "Nguyễn Anh Tiến", mssv: "25110129", role: "" },
+                    { name: "Lê Ngọc Bảo Trân", mssv: "25110240", role: "" },
+                    { name: "Lê Thị Thu Trang", mssv: "25110241", role: "" }
+                ]
+            },
+            "13": {
+                groupname: "T7-04",
+                members: [
+                    { name: "Thái Tuệ Mẫn", mssv: "25110073", role: "" },
+                    { name: "Đinh Văn Nhật", mssv: "25110085", role: "" },
+                    { name: "Lê Nguyên Phương", mssv: "25110103", role: "" },
+                    { name: "Nguyễn Thị Phương Thảo", mssv: "25110116", role: "" },
+                    { name: "Phạm Nguyễn Anh Thư", mssv: "25110125", role: "" },
+                    { name: "Nguyễn Phước Tín", mssv: "25110175", role: "" },
+                    { name: "Ngô Phát Triển", mssv: "25110243", role: "" },
+                    { name: "Hoàng Việt Trung", mssv: "25110137", role: "" },
+                    { name: "Châu Thanh Tùng", mssv: "25110245", role: "" }
+                ]
+            },
+            "14": {
+                groupname: "T7-05",
+                members: [
+                    { name: "Lưu Công Danh", mssv: "25110192", role: "" },
+                    { name: "Trần Tấn Diện", mssv: "25110031", role: "" },
+                    { name: "Phạm Minh Hoàng", mssv: "25110202", role: "" },
+                    { name: "Ngô Quốc Thiên Hương", mssv: "25110204", role: "" },
+                    { name: "Nguyễn Minh Khôi", mssv: "25110210", role: "" },
+                    { name: "Trần Khả Kính", mssv: "25110212", role: "" },
+                    { name: "Nguyễn Hoàng Lâm", mssv: "25110214", role: "" },
+                    { name: "Hồ Ngọc Long", mssv: "25110216", role: "" },
+                    { name: "Bùi Tấn Phát", mssv: "25110225", role: "" },
+                    { name: "Nguyễn Minh Trung", mssv: "25110138", role: "" }
+                ]
+            },
+            "15": {
+                groupname: "T7-06",
+                members: [
+                    { name: "Lê Đỗ Bảo Duy", mssv: "25110198", role: "" },
+                    { name: "Nguyễn Lê Quang Đại", mssv: "25110190", role: "" },
+                    { name: "Huỳnh Hoàng Huy", mssv: "25110164", role: "" },
+                    { name: "Phan Nguyễn Tiến Khoa", mssv: "25110002", role: "" },
+                    { name: "Tô Hữu Quốc", mssv: "25110232", role: "" },
+                    { name: "Châu Hải Thiên", mssv: "25110236", role: "" },
+                    { name: "Trà Minh Thiện", mssv: "25110237", role: "" },
+                    { name: "Hoàng Minh Tuấn", mssv: "25110178", role: "" }
+                ]
+            },
+            "16": {
+                groupname: "T7-07",
+                members: [
+                    { name: "Lê Đỗ Tiến Đạt", mssv: "25110193", role: "" },
+                    { name: "Lương Gia Hân", mssv: "25110157", role: "" },
+                    { name: "Danh Nhựt Hào", mssv: "25110199", role: "" },
+                    { name: "Nguyễn Đình Hoàng", mssv: "25110004", role: "" },
+                    { name: "Trương Quang Long", mssv: "25110168", role: "" },
+                    { name: "Vũ Thị Quỳnh Như", mssv: "25280089", role: "" },
+                    { name: "Mai Duy Phát", mssv: "25110226", role: "" },
+                    { name: "Nguyễn Tấn Triển", mssv: "25110177", role: "" },
+                    { name: "Đặng Huỳnh Khánh Vy", mssv: "25280052", role: "" }
+                ]
+            },            
+            "17": {
+                groupname: "T7-08",
+                members: [
+                    { name: "Nguyễn Ngọc Diễm", mssv: "25110152", role: "" },
+                    { name: "Hứa Hoàng Thùy Dương", mssv: "25110197", role: "" },
+                    { name: "Đặng Hồng Duyên", mssv: "25110154", role: "" },
+                    { name: "Võ Trọng Đức", mssv: "25110196", role: "" },
+                    { name: "Nguyễn Duy Minh Huy", mssv: "25110206", role: "" },
+                    { name: "Nguyễn Hoàng Quốc Luật", mssv: "25110217", role: "" },
+                    { name: "Lê Võ Trúc My", mssv: "25110218", role: "" },
+                    { name: "Lê Trần Hoàng Nhân", mssv: "25110224", role: "" },
+                    { name: "Nhan Quang Phước", mssv: "25110230", role: "" },
+                    { name: "Ngô Trung Sơn", mssv: "25110234", role: "" }
+                ]
+            },
+            "18": {
+                groupname: "T7-09",
+                members: [
+                    { name: "Chu Đình An", mssv: "25110183", role: "" },
+                    { name: "Phạm Đào Văn Chương", mssv: "25110151", role: "" },
+                    { name: "Nguyễn Ngọc Hiển", mssv: "25110158", role: "" },
+                    { name: "Đặng Nguyễn Gia Huy", mssv: "25110163", role: "" },
+                    { name: "Nguyễn Quang Nhật Hy", mssv: "25110165", role: "" },
+                    { name: "Lê Anh Khoa", mssv: "25110166", role: "" },
+                    { name: "Huỳnh Tú Toàn", mssv: "25280047", role: "" },
+                    { name: "Trần Hùng Luyện", mssv: "24110201", role: "" },
+                    { name: "Nguyễn Thiên Văn", mssv: "25110146", role: "" }
+                ]
+            },
+            "19": {
+                groupname: "T7-10",
+                members: [
+                    { name: "Vũ Thành Công", mssv: "25280057", role: "" },
+                    { name: "Nguyễn Trần Ngọc Diệp", mssv: "25280098", role: "" },
+                    { name: "Đinh Nguyên Hiếu", mssv: "25280100", role: "" },
+                    { name: "Hàng Vũ Minh Khang", mssv: "25110056", role: "" },
+                    { name: "Mai Tuấn Khanh", mssv: "25280108", role: "" },
+                    { name: "Hoàng Công Minh", mssv: "25280067", role: "" },
+                    { name: "Nguyễn Trọng Nghĩa", mssv: "25280069", role: "" },
+                    { name: "Nguyễn Hữu Vinh", mssv: "25280079", role: "" }
+                ]
+            }
+        };
+
+        // Current state variables
+        let currentMembers = [];
+        let membersShort = [];
+        let currentRole = 'member';
+
+        const memberCriteriaData = [
+            { title: "1. THAM DỰ & PHỐI HỢP TRONG NHÓM", desc: "Mức 1: Vắng >20% (0.5đ) | Mức 2: Vắng 10-20% (1.5đ) | Mức 3: Vắng <10% (2.5đ)" },
+            { title: "2. QUẢN LÝ CÔNG VIỆC", desc: "Mức 1: Trễ hạn (0.5đ) | Mức 2: Đúng hạn (1.5đ) | Mức 3: Chủ động, sớm hạn (2.5đ)" },
+            { title: "3. GIAO TIẾP", desc: "Mức 1: Kém (0.5đ) | Mức 2: Khá (1.5đ) | Mức 3: Tốt, rõ ràng (2.5đ)" },
+            { title: "4. KỸ NĂNG GIẢI QUYẾT VẤN ĐỀ", desc: "Mức 1: Kém (0.5đ) | Mức 2: Khá (1.5đ) | Mức 3: Tốt, logic (2.5đ)" }
+        ];
+        const leaderCriteria = ["1. THAM DỰ & PHỐI HỢP", "2. QUẢN LÝ CÔNG VIỆC", "3. GIAO TIẾP", "4. GIẢI QUYẾT VẤN ĐỀ"];
+        const lecturerCriteria = ["1. CHUYÊN CẦN", "2. NGHIÊM TÚC", "3. MỨC ĐỘ THAM GIA", "4. MỨC ĐỘ TIẾN BỘ", "5. NHÓM TRƯỞNG"];
+
+        window.onload = function() {
+            initGroupSelect();
+            renderMemberForm();
+            loadDraft();
+        };
+
+        function initGroupSelect() {
+            const select = document.getElementById('groupSelect');
+            for(let i=1; i<=19; i++) {
+                const opt = document.createElement('option');
+                opt.value = i.toString();
+                opt.textContent = `Nhóm ${i} - ${groupsDatabase[i].groupname}`;
+                select.appendChild(opt);
+            }
+        }
+
+        function changeGroup() {
+            const groupId = document.getElementById('groupSelect').value;
+            if(!groupId) {
+                currentMembers = [];
+                document.getElementById('memberListInfo').innerHTML = '<p class="text-gray-500 italic">Vui lòng chọn nhóm.</p>';
+                document.getElementById('groupnameDisplay').innerText = 'ID nhóm: ...';
+                return;
+            }
+
+            const group = groupsDatabase[groupId];
+            currentMembers = group.members;
+            document.getElementById('groupnameDisplay').innerText = `ID nhóm: ${group.groupname}`;
+            document.getElementById('memberCountBadge').innerText = `${currentMembers.length} Thành viên`;
+
+            // Update Member List Display
+            const listContainer = document.getElementById('memberListInfo');
+            listContainer.innerHTML = '';
+            currentMembers.forEach((m, i) => {
+                const roleBadge = m.role ? `<span class="text-xs bg-yellow-100 text-yellow-800 px-1 rounded ml-1 border border-yellow-300 font-bold">${m.role}</span>` : '';
+                listContainer.innerHTML += `
+                    <div class="flex items-center p-1 hover:bg-white rounded">
+                        <span class="font-mono text-gray-500 w-6 text-right mr-2 font-bold">${i+1}.</span>
+                        <div><div class="font-medium text-gray-800">${m.name} ${roleBadge}</div><div class="text-xs text-gray-500">MSSV: ${m.mssv}</div></div>
+                    </div>`;
+            });
+
+            // Update Short Names for Table Headers
+            membersShort = currentMembers.map(m => {
+                const lastName = m.name.split(' ').pop();
+                const lastId = m.mssv.slice(-3);
+                return `${lastName} (${lastId})`;
+            });
+
+            // Update Evaluator Dropdown
+            const evalSelect = document.getElementById('evaluatorName');
+            evalSelect.innerHTML = '<option value="">-- Chọn thành viên --</option>';
+            currentMembers.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = `${m.name} - ${m.mssv}`;
+                opt.textContent = `${m.name} (${m.mssv})`;
+                evalSelect.appendChild(opt);
+            });
+            const optGV = document.createElement('option');
+            optGV.value = "Giảng Viên"; optGV.textContent = "Giảng Viên / Khác";
+            evalSelect.appendChild(optGV);
+
+            // Re-render Tables
+            renderTableStructure('peer', leaderCriteria);
+            renderTableStructure('leader', leaderCriteria);
+            renderTableStructure('lecturer', lecturerCriteria);
+            
+            // Try to restore data if available for this group
+            // Note: Mixing groups might show wrong data if keys conflict, but clearData handles that.
+        }
+
+        function toggleRubric() { document.getElementById('rubricModal').classList.toggle('hidden'); }
+
+        function renderMemberForm() {
+            const container = document.getElementById('memberCriteriaContainer');
+            container.innerHTML = '';
+            memberCriteriaData.forEach((crit, index) => {
+                container.innerHTML += `
+                <div class="border border-gray-200 p-4 rounded bg-white shadow-sm">
+                    <h3 class="font-bold text-gray-800">${crit.title}</h3>
+                    <p class="text-xs text-gray-500 mb-2 italic">${crit.desc}</p>
+                    <div>
+                        <label class="text-xs font-bold text-blue-800 uppercase">Tự đánh giá điểm:</label>
+                        <input type="number" step="0.5" min="0" max="2.5" id="mem_c${index+1}_self" oninput="validateAndSave(this)" class="w-24 mt-1 p-2 border rounded focus:border-blue-500 outline-none text-center font-bold ml-2" placeholder="0 - 2.5">
+                    </div>
+                </div>`;
+            });
+        }
+
+        function renderTableStructure(prefix, criteriaList) {
+            const headerRow = document.getElementById(`${prefix}HeaderRow`);
+            // Clear old headers (keep first one)
+            while (headerRow.children.length > 1) { headerRow.removeChild(headerRow.lastChild); }
+            
+            membersShort.forEach(name => {
+                const th = document.createElement('th');
+                th.className = 'p-2 text-center w-24 min-w-[90px] border-l border-gray-200 text-xs';
+                th.textContent = name;
+                headerRow.appendChild(th);
+            });
+
+            const tbody = document.getElementById(`${prefix}TableBody`);
+            tbody.innerHTML = '';
+            criteriaList.forEach((criteria, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition';
+                const tdName = document.createElement('td');
+                tdName.className = 'p-2 text-sm text-gray-700 sticky-col bg-white border-r font-medium';
+                tdName.textContent = criteria;
+                tr.appendChild(tdName);
+                
+                // Dynamic columns based on currentMembers length
+                for(let i=0; i < currentMembers.length; i++) {
+                    const td = document.createElement('td');
+                    td.className = 'p-1 text-center border-l border-gray-100';
+                    const input = document.createElement('input');
+                    input.type = 'number'; input.step = '0.5'; input.min = '0'; input.max = '2.5';
+                    input.className = 'w-full p-1 text-center text-sm rounded hover:bg-blue-50 focus:bg-white focus:border-blue-500 border border-transparent focus:border-blue-300 outline-none transition';
+                    input.id = `${prefix}_c${idx + 1}_m${i}`; 
+                    input.oninput = () => { validateAndSave(input); calculateTotal(prefix); };
+                    td.appendChild(input);
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+
+            const footerRow = document.getElementById(`${prefix}FooterRow`);
+            while (footerRow.children.length > 1) { footerRow.removeChild(footerRow.lastChild); }
+            for(let i=0; i < currentMembers.length; i++) {
+                const td = document.createElement('td');
+                td.className = 'p-2 text-center font-bold text-blue-800 border-l border-blue-100';
+                td.id = `${prefix}_sum_m${i}`;
+                td.textContent = '0';
+                footerRow.appendChild(td);
+            }
+        }
+
+        function validateAndSave(input) {
+            let val = parseFloat(input.value);
+            if(val > 2.5) { alert("Điểm tối đa là 2.5"); input.value = 2.5; }
+            if(val < 0) input.value = 0;
+            saveDraft();
+        }
+
+        function calculateTotal(prefix) {
+            const criteriaList = (prefix === 'leader' || prefix === 'peer') ? leaderCriteria : lecturerCriteria;
+            for(let i=0; i < currentMembers.length; i++) {
+                let total = 0;
+                for(let c=1; c <= criteriaList.length; c++) {
+                    const el = document.getElementById(`${prefix}_c${c}_m${i}`);
+                    if(el) total += parseFloat(el.value) || 0;
+                }
+                const sumEl = document.getElementById(`${prefix}_sum_m${i}`);
+                if(sumEl) sumEl.innerText = total.toFixed(1);
+            }
+        }
+
+        function switchTab(role) {
+            currentRole = role;
+            ['member', 'peer', 'leader', 'lecturer'].forEach(r => {
+                const btn = document.getElementById(`tab-${r}`);
+                const form = document.getElementById(`form-${r}`);
+                if (r === role) {
+                    btn.classList.add('active-tab'); btn.classList.remove('inactive-tab');
+                    form.classList.remove('hidden'); form.classList.add('block');
+                } else {
+                    btn.classList.remove('active-tab'); btn.classList.add('inactive-tab');
+                    form.classList.add('hidden'); form.classList.remove('block');
+                }
+            });
+        }
+
+        function saveDraft() {
+            const inputs = document.querySelectorAll('input, select');
+            const data = {};
+            inputs.forEach(input => { if (input.id) data[input.id] = input.value; });
+            localStorage.setItem('GeoData_v5', JSON.stringify(data));
+            const status = document.getElementById('autoSaveStatus');
+            status.style.display = 'flex';
+            setTimeout(() => { status.style.display = 'none'; }, 2000);
+        }
+
+        function loadDraft() {
+            const data = JSON.parse(localStorage.getItem('GeoData_v5'));
+            if (data) {
+                if(data['groupSelect']) {
+                    document.getElementById('groupSelect').value = data['groupSelect'];
+                    changeGroup(); // Re-build tables based on loaded group
+                }
+                
+                // Fill data after tables are rebuilt
+                setTimeout(() => {
+                    Object.keys(data).forEach(key => {
+                        const el = document.getElementById(key);
+                        if (el) el.value = data[key];
+                    });
+                    calculateTotal('peer');
+                    calculateTotal('leader');
+                    calculateTotal('lecturer');
+                }, 100);
+            }
+        }
+
+        function clearData() {
+            if(confirm("Xóa toàn bộ dữ liệu làm lại?")) {
+                localStorage.removeItem('GeoData_v5');
+                document.getElementById("evaluationForm").reset();
+                document.getElementById('groupSelect').value = "";
+                changeGroup();
+            }
+        }
+
+        function exportToCSV() {
+            const groupId = document.getElementById('groupSelect').value;
+            const groupName = groupId ? `Nhom ${groupId}` : "Nhom_Chua_Chon";
+            const evaluator = document.getElementById('evaluatorName').value.trim() || "An_Danh";
+            let csvContent = "\uFEFF"; 
+
+            if (currentRole === 'member') {
+                const week = document.getElementById('weekSelect').value;
+                csvContent += `LOAI PHIEU,TU DANH GIA (CA NHAN)\nNguoi danh gia,${evaluator}\nNhom,${groupName}\nTuan,${week}\n\nTieu chi,Diem Tu Danh Gia\n`;
+                memberCriteriaData.forEach((crit, idx) => {
+                    const val = document.getElementById(`mem_c${idx+1}_self`).value || 0;
+                    csvContent += `"${crit.title}",${val}\n`;
+                });
+            } else {
+                let roleName = "", prefix = "", criteriaList = [];
+                if (currentRole === 'peer') { roleName = "DANH GIA CHEO"; prefix = 'peer'; criteriaList = leaderCriteria; }
+                else if (currentRole === 'leader') { roleName = "NHOM TRUONG TONG HOP"; prefix = 'leader'; criteriaList = leaderCriteria; }
+                else { roleName = "GIANG VIEN DANH GIA"; prefix = 'lecturer'; criteriaList = lecturerCriteria; }
+                
+                const namesRow = currentMembers.map(m => m.name).join(',');
+                csvContent += `LOAI PHIEU,${roleName}\nNguoi danh gia,${evaluator}\nNhom,${groupName}\n\nTieu chi,${namesRow}\n`;
+                
+                criteriaList.forEach((crit, idx) => {
+                    let row = [`"${crit}"`];
+                    for(let i=0; i < currentMembers.length; i++) {
+                         row.push(document.getElementById(`${prefix}_c${idx+1}_m${i}`)?.value || 0);
+                    }
+                    csvContent += row.join(',') + "\n";
+                });
+                
+                let totalRow = ["TONG CONG"];
+                for(let i=0; i < currentMembers.length; i++) totalRow.push(document.getElementById(`${prefix}_sum_m${i}`)?.innerText || 0);
+                csvContent += totalRow.join(',') + "\n";
+            }
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csvContent], {type: 'text/csv;charset=utf-8;'}));
+            link.download = `${groupName}_${currentRole}_${evaluator.split(' ')[0]}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function submitToGoogleSheet() {
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("DÁN_LINK")) { alert("Chưa cấu hình Google Script URL!"); return; }
+            const groupId = document.getElementById('groupSelect').value;
+            const groupName = groupId ? `Nhóm ${groupId}` : "";
+            const evaluator = document.getElementById('evaluatorName').value;
+            if(!groupName || !evaluator) { alert("Vui lòng Chọn Nhóm và Người đánh giá!"); return; }
+
+            let payload = {
+                role: currentRole, groupName: groupName, evaluator: evaluator,
+                week: document.getElementById('weekSelect').value, scores: []
+            };
+
+            if (currentRole === 'member') {
+                memberCriteriaData.forEach((crit, idx) => {
+                    payload.scores.push(document.getElementById(`mem_c${idx+1}_self`).value || 0);
+                });
+            } else {
+                let prefix = "", criteriaList = [];
+                if (currentRole === 'peer') { prefix = 'peer'; criteriaList = leaderCriteria; }
+                else if (currentRole === 'leader') { prefix = 'leader'; criteriaList = leaderCriteria; }
+                else { prefix = 'lecturer'; criteriaList = lecturerCriteria; }
+
+                payload.week = "N/A";
+                criteriaList.forEach((crit, idx) => {
+                    for(let i=0; i < currentMembers.length; i++) {
+                        payload.scores.push(document.getElementById(`${prefix}_c${idx+1}_m${i}`)?.value || 0);
+                    }
+                });
+            }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                alert("Đã gửi dữ liệu thành công!");
+            }).catch(e => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                alert("Lỗi kết nối!");
+            });
+        }
+    </script>
+</body>
+</html>
