@@ -565,10 +565,16 @@
             };
 
             if (currentRole === 'member') {
+                let totalSelfScore = 0; // Thêm biến tổng cộng
                 memberCriteriaData.forEach((crit, idx) => {
                     payload.headers.push(crit.title);
-                    payload.scores.push(document.getElementById(`mem_c${idx+1}_self`).value || 0);
+                    let score = document.getElementById(`mem_c${idx+1}_self`).value || 0;
+                    payload.scores.push(score);
+                    totalSelfScore += parseFloat(score || 0); // Cộng dồn điểm
                 });
+                // Gửi thêm cột Tổng cộng vào payload
+                payload.headers.push("TỔNG CỘNG");
+                payload.scores.push(totalSelfScore);
             } else {
                 let prefix = "", criteriaList = [];
                 if (currentRole === 'peer') { prefix = 'peer'; criteriaList = leaderCriteria; }
@@ -583,6 +589,14 @@
                         payload.scores.push(document.getElementById(`${prefix}_c${idx+1}_m${i}`)?.value || 0);
                     }
                 });
+                
+                // QUAN TRỌNG: Thêm vòng lặp lấy Tổng Điểm của từng thành viên
+                for(let i=0; i < currentMembers.length; i++) {
+                    let memberName = currentMembers[i].name;
+                    payload.headers.push(`TỔNG CỘNG - ${memberName}`);
+                    let totalScore = document.getElementById(`${prefix}_sum_m${i}`)?.innerText || 0;
+                    payload.scores.push(totalScore);
+                }
             }
 
             let commentText = document.getElementById('additionalComments').value || "";
